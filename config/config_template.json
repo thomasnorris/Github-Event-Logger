@@ -8,7 +8,7 @@
             "port": 3306
         },
         "sp": {
-            "log_node_app": "SP_LogEvent"
+            "log_event": "SP_LogEvent"
         }
     },
     "express": {

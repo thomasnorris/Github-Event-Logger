@@ -6,6 +6,9 @@ var _app = _express();
 const CFG_FILE = _path.resolve(__dirname, 'config', 'config.json');
 var _cfg = readJson(CFG_FILE);
 
+var _mysql = require('mysql');
+var _pool = _mysql.createPool(_cfg.sql.connection);
+
 _app.use(_bodyParser.json());
 
 _app.post(_cfg.express.endpoint, (req, res) => {
@@ -18,13 +21,12 @@ _app.post(_cfg.express.endpoint, (req, res) => {
     var repo = payload.repository.name;
     var branch = payload.ref.replace('refs/heads/', '');
     logEvent(event, repo, branch)
-        .then(() => {
-            res.status(200).send();
+        .then((response) => {
+            res.status(200).send(response);
         })
-        .catch(() => {
-            res.status(500).send();
+        .catch((err) => {
+            res.status(500).send(err);
         });
-    res.status(200).send();
 });
 
 _app.set('json spaces', 4);
@@ -34,7 +36,22 @@ console.log('listening on ' + _cfg.express.port);
 
 function logEvent(event, repo, branch) {
     return new Promise((resolve, reject) => {
+        (async () => {
+            _pool.getConnection((err, connection) => {
+                if (err)
+                    resolve(err)
+                var query = 'call ' + _cfg.sql.connection.database + '.' + _cfg.sql.sp.log_event + '(';
+                query += connection.escape(event) + ', ' + connection.escape(repo) + ', ' + connection.escape(branch) + ')';
 
+                connection.query(query, (err, res, fields) => {
+                    connection.release();
+                    if (err)
+                        reject(err);
+                    else
+                        resolve(res);
+                });
+            });
+        })();
     });
 }
 
