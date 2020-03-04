@@ -1,0 +1,18 @@
+{
+    "sql": {
+        "connection": {
+            "host": "host",
+            "database": "Database",
+            "user": "user",
+            "password": "password",
+            "port": 3306
+        },
+        "sp": {
+            "log_node_app": "SP_LogEvent"
+        }
+    },
+    "express": {
+        "port": 2000,
+        "endpoint": "/"
+    }
+}

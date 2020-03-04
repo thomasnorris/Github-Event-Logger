@@ -1,0 +1,20 @@
+{
+  "name": "Github-Event-Logger",
+  "version": "1.0.0",
+  "description": "Record Github events via webhooks to a MySQL database",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github-personal:thomasnorris/Github-Event-Logger.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mysql": "^2.18.1"
+  }
+}
