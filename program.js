@@ -37,8 +37,7 @@ function logEvent(req) {
     var payload = req.body;
     var event = req.get('X-GitHub-Event');
     var action = payload.action || '';
-    var repoName = payload.repository.name;
-    var repoOwner = payload.repository.owner.login;
+    var name = payload.repository.name;
     var branch = payload.ref ? payload.ref.replace('refs/heads/', '') : '';
     var sender = payload.sender.login || '';
 
@@ -48,8 +47,8 @@ function logEvent(req) {
                 if (err)
                     resolve(err)
                 var query = 'call ' + _cfg.sql.connection.database + '.' + _cfg.sql.sp.log_event + '(';
-                query += connection.escape(event) + ', ' + connection.escape(repoName) + ', ' + connection.escape(repoOwner) + ', ';
-                query += connection.escape(action) + ', ' + connection.escape(branch) + ', ' + connection.escape(sender) + ')';
+                query += connection.escape(event) + ', ' + connection.escape(name) + ', ' + connection.escape(action) + ', ';
+                query += connection.escape(branch) + ', ' + connection.escape(sender) + ')';
 
                 connection.query(query, (err, res, fields) => {
                     connection.release();
