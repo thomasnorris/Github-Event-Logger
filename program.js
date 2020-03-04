@@ -12,21 +12,20 @@ var _pool = _mysql.createPool(_cfg.sql.connection);
 _app.use(_bodyParser.json());
 
 _app.post(_cfg.express.endpoint, (req, res) => {
-    var payload = req.body;
-    if (!payload) {
+    if (!req.body) {
         // log this
+        res.send(409).send('No payload');
+    }
+    else {
+        logEvent(req)
+            .then((response) => {
+                res.status(200).send(response);
+            })
+            .catch((err) => {
+                res.status(500).send(err);
+            });
     }
 
-    var event = req.get('X-GitHub-Event');
-    var repo = payload.repository.name;
-    var branch = payload.ref.replace('refs/heads/', '');
-    logEvent(event, repo, branch)
-        .then((response) => {
-            res.status(200).send(response);
-        })
-        .catch((err) => {
-            res.status(500).send(err);
-        });
 });
 
 _app.set('json spaces', 4);
@@ -34,14 +33,23 @@ _app.listen(_cfg.express.port);
 
 console.log('listening on ' + _cfg.express.port);
 
-function logEvent(event, repo, branch) {
+function logEvent(req) {
+    var payload = req.body;
+    var event = req.get('X-GitHub-Event');
+    var action = payload.action || '';
+    var repoName = payload.repository.name;
+    var repoOwner = payload.repository.owner.login;
+    var branch = payload.ref ? payload.ref.replace('refs/heads/', '') : '';
+    var sender = payload.sender.login || '';
+
     return new Promise((resolve, reject) => {
         (async () => {
             _pool.getConnection((err, connection) => {
                 if (err)
                     resolve(err)
                 var query = 'call ' + _cfg.sql.connection.database + '.' + _cfg.sql.sp.log_event + '(';
-                query += connection.escape(event) + ', ' + connection.escape(repo) + ', ' + connection.escape(branch) + ')';
+                query += connection.escape(event) + ', ' + connection.escape(repoName) + ', ' + connection.escape(repoOwner) + ', ';
+                query += connection.escape(action) + ', ' + connection.escape(branch) + ', ' + connection.escape(sender) + ')';
 
                 connection.query(query, (err, res, fields) => {
                     connection.release();
