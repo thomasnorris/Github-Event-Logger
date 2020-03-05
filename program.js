@@ -38,6 +38,7 @@ _app.set('json spaces', 4);
 _app.listen(_cfg.express.port);
 
 _logger.Init.Async('Server listening', 'localhost:' + _cfg.express.port);
+console.log('Server listening on port ' + _cfg.express.port);
 
 function logEvent(req, event) {
     var payload = req.body;
@@ -50,18 +51,20 @@ function logEvent(req, event) {
         (async () => {
             _pool.getConnection((err, connection) => {
                 if (err)
-                    resolve(err)
-                var query = 'call ' + _cfg.sql.connection.database + '.' + _cfg.sql.sp.log_event + '(';
-                query += connection.escape(event) + ', ' + connection.escape(name) + ', ' + connection.escape(action) + ', ';
-                query += connection.escape(branch) + ', ' + connection.escape(sender) + ')';
+                    reject(err)
+                else {
+                    var query = 'call ' + _cfg.sql.connection.database + '.' + _cfg.sql.sp.log_event + '(';
+                    query += connection.escape(event) + ', ' + connection.escape(name) + ', ' + connection.escape(action) + ', ';
+                    query += connection.escape(branch) + ', ' + connection.escape(sender) + ')';
 
-                connection.query(query, (err, res, fields) => {
-                    connection.release();
-                    if (err)
-                        reject(err);
-                    else
-                        resolve(res);
-                });
+                    connection.query(query, (err, res, fields) => {
+                        connection.release();
+                        if (err)
+                            reject(err);
+                        else
+                            resolve(res);
+                    });
+                }
             });
         })();
     });
