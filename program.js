@@ -1,4 +1,6 @@
 var _path = require('path');
+var _logger = require(_path.resolve(__dirname, 'Node-Logger', 'app.js'));
+
 var _bodyParser = require('body-parser');
 var _express = require('express');
 var _app = _express();
@@ -12,16 +14,20 @@ var _pool = _mysql.createPool(_cfg.sql.connection);
 _app.use(_bodyParser.json());
 
 _app.post(_cfg.express.endpoint, (req, res) => {
+    var event = req.get('X-GitHub-Event');
+
     if (!req.body) {
-        // log this
+        _logger.Error.Async('No payload', 'Event: ' + event);
         res.send(409).send('No payload');
     }
     else {
-        logEvent(req)
+        logEvent(req, event)
             .then((response) => {
+                _logger.Info.Async('Event logged');
                 res.status(200).send(response);
             })
             .catch((err) => {
+                _logger.Error.Async('Event not logged', err);
                 res.status(500).send(err);
             });
     }
@@ -31,11 +37,10 @@ _app.post(_cfg.express.endpoint, (req, res) => {
 _app.set('json spaces', 4);
 _app.listen(_cfg.express.port);
 
-console.log('listening on ' + _cfg.express.port);
+_logger.Init.Async('Server listening', 'localhost:' + _cfg.express.port);
 
-function logEvent(req) {
+function logEvent(req, event) {
     var payload = req.body;
-    var event = req.get('X-GitHub-Event');
     var action = payload.action || '';
     var name = payload.repository.name;
     var branch = payload.ref ? payload.ref.replace('refs/heads/', '') : '';
