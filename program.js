@@ -22,9 +22,9 @@ _app.post(_cfg.express.endpoint, (req, res) => {
     }
     else {
         logEvent(req, event)
-            .then((response) => {
+            .then((results) => {
                 _logger.Info.Async('Event logged');
-                res.status(200).send(response);
+                res.status(200).send(results);
             })
             .catch((err) => {
                 _logger.Error.Async('Event not logged', err);
