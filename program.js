@@ -18,7 +18,7 @@ _app.post(_cfg.express.endpoint, (req, res) => {
 
     if (!req.body) {
         _logger.Error.Async('No payload', 'Event: ' + event);
-        res.send(409).send('No payload');
+        res.status(409).send('No payload');
     }
     else {
         logEvent(req, event)
